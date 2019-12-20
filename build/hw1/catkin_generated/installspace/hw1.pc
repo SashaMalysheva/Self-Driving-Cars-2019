@@ -1,0 +1,8 @@
+prefix=/home/tehnar/ROS/install
+
+Name: hw1
+Description: Description of hw1
+Version: 0.0.0
+Cflags: 
+Libs: -L/home/tehnar/ROS/install/lib 
+Requires: 
