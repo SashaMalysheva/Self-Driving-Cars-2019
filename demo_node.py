@@ -1,4 +1,15 @@
-#!/usr/bin/env pythonimport cv_bridgefrom cv_bridge import CvBridge, CvBridgeErrorfrom duckietown_msgs.msg import Twist2DStampedfrom sensor_msgs.msg import CompressedImage, Imageimport rospyimport numpy as npimport mathimport syssys.path.append(sys.path.pop(1))sys.path.append(sys.path.pop(1))import cv2
+#!/usr/bin/env python
+import cv_bridge
+from cv_bridge import CvBridge, CvBridgeError
+from duckietown_msgs.msg import Twist2DStamped
+from sensor_msgs.msg import CompressedImage, Image
+import rospy
+import numpy as np
+import math
+import sys
+sys.path.append(sys.path.pop(1))
+sys.path.append(sys.path.pop(1))
+import cv2
 
 def findIntersection(l1, l2, height):
     [[x1,y1],[x2,y2]] = l1
@@ -34,7 +45,36 @@ def find_angle(image):
     x, y = findIntersection(sorted_lines[0], sorted_lines[-1], height)
     return math.atanh((width/2 - x)/(height - y))
 
-def img_to_cv2(image_msg):    """        Convert the image message into a cv2 image (numpy.ndarray)        to be able to do OpenCV operations in it.        :param Image or CompressedImage image_msg: the message to transform    """    rospy.loginfo("image is of type: " + str(type(image_msg)))    type_as_str = str(type(image_msg))    if type_as_str.find('sensor_msgs.msg._CompressedImage.CompressedImage') >= 0:        # Image to numpy array        np_arr = np.fromstring(image_msg.data, np.uint8)        # Decode to cv2 image and store        return cv2.imdecode(np_arr, cv2.IMREAD_COLOR)    elif type_as_str.find('sensor_msgs.msg._Image.Image') >= 0:        # Use CvBridge to transform        try:            return self.bridge.imgmsg_to_cv2(image_msg, image_msg.encoding)  # "bgr8"        except CvBridgeError as e:            rospy.logerr("Error when converting image: " + str(e))            return None        else:            rospy.logerr("We don't know how to transform image of type " + str(type(image_msg)) + " to $            return Noneclass DemoNode(object):    def __init__(self):        self.node_name = "LineDetectorNode"        self.sub_image = rospy.Subscriber("/None/corrected_image/compressed", CompressedImage, self.cbI$        self.pub_cmd = rospy.Publisher("/None/car_cmd", Twist2DStamped, queue_size=1)
+def img_to_cv2(image_msg):
+    """
+        Convert the image message into a cv2 image (numpy.ndarray)
+        to be able to do OpenCV operations in it.
+        :param Image or CompressedImage image_msg: the message to transform
+    """
+    rospy.loginfo("image is of type: " + str(type(image_msg)))
+    type_as_str = str(type(image_msg))
+    if type_as_str.find('sensor_msgs.msg._CompressedImage.CompressedImage') >= 0:
+        # Image to numpy array
+        np_arr = np.fromstring(image_msg.data, np.uint8)
+        # Decode to cv2 image and store
+        return cv2.imdecode(np_arr, cv2.IMREAD_COLOR)
+    elif type_as_str.find('sensor_msgs.msg._Image.Image') >= 0:
+        # Use CvBridge to transform
+        try:
+            return self.bridge.imgmsg_to_cv2(image_msg, image_msg.encoding)  # "bgr8"
+        except CvBridgeError as e:
+            rospy.logerr("Error when converting image: " + str(e))
+            return None
+        else:
+            rospy.logerr("We don't know how to transform image of type " + str(type(image_msg)) + " to $
+            return None
+
+class DemoNode(object):
+    def __init__(self):
+        self.node_name = "LineDetectorNode"
+        self.sub_image = rospy.Subscriber("/None/corrected_image/compressed", CompressedImage, self.cbI$
+        self.pub_cmd = rospy.Publisher("/None/car_cmd", Twist2DStamped, queue_size=1)
+
     def cbImage(self, image_msg):
         msg = Twist2DStamped()
         msg.v = 0.5
@@ -46,3 +86,5 @@ if __name__ == '__main__':
     rospy.init_node('demo',anonymous=False)
     demo_node = DemoNode()
     rospy.spin()
+
+
