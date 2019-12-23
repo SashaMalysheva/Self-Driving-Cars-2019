@@ -66,7 +66,7 @@ def img_to_cv2(image_msg):
             rospy.logerr("Error when converting image: " + str(e))
             return None
         else:
-            rospy.logerr("We don't know how to transform image of type " + str(type(image_msg)) + " to $
+            rospy.logerr("We don't know how to transform image of type " + str(type(image_msg)) 
             return None
 
 class DemoNode(object):
