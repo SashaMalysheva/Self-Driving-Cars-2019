@@ -15,7 +15,7 @@ def findIntersection(l1, l2, height):
     [[x1,y1],[x2,y2]] = l1
     [[x3,y3],[x4,y4]] = l2
     d = ((x1-x2)*(y3-y4)-(y1-y2)*(x3-x4))
-    if d == 0: return 0, height
+    if d == 0: return 0, height/2
     px = ((x1*y2-y1*x2)*(x3-x4)-(x1-x2)*(x3*y4-y3*x4)) / d
     py = ((x1*y2-y1*x2)*(y3-y4)-(y1-y2)*(x3*y4-y3*x4)) / d
     return px, py
@@ -33,6 +33,8 @@ def find_angle(image):
                             minLineLength=100,
                             maxLineGap=20)
     #array of (x_1, y_1, x_2, y_2)
+    if lines is None:
+        return 0
     lines = [[[l[0][0], l[0][1] + int(height/3), l[0][2], l[0][3] + int(height/3)]] for l in lines]
     lines = [[l[0][:2], l[0][2:]] for l in lines] #array of (x_1, y_1, x_2, y_2)
     half_sorted_lines = [sorted(l, key = lambda x: x[1]) for l in lines] #sort poins in line: from top to bottom
@@ -41,9 +43,9 @@ def find_angle(image):
     [[x1,y1],[x2,y2]] = l1
     [[x3,y3],[x4,y4]] = l2
     l = [[[x1,y1,x2,y2]], [[x3,y3,x4,y4]]]
-    image_with_lines = drow_the_lines(image, l)
     x, y = findIntersection(sorted_lines[0], sorted_lines[-1], height)
-    return math.atanh((width/2 - x)/(height - y))
+    x = x - width // 2
+    return math.acos(y / (x*x + y*y))
 
 def img_to_cv2(image_msg):
     """
@@ -71,6 +73,7 @@ def img_to_cv2(image_msg):
 
 class DemoNode(object):
     def __init__(self):
+        self.c = 0
         self.node_name = "LineDetectorNode"
         self.sub_image = rospy.Subscriber("/None/corrected_image/compressed", CompressedImage, self.cbImage, queue_size=1)
         self.pub_cmd = rospy.Publisher("/None/car_cmd", Twist2DStamped, queue_size=1)
@@ -80,16 +83,15 @@ class DemoNode(object):
     def cbImage(self, image_msg):
         msg = Twist2DStamped()
         msg.v = 0.1
-        bridge = cv_bridge.CvBridge()
-        np_arr = np.fromstring(image_msg.data, np.uint8)
-#        img = cv2.imdecode(np_arr, cv2.CV_LOAD_IMAGE_COLOR)
-        img = img_to_cv2(image_msg)
-        msg.omega = find_angle(img)
+        msg.omega = 0
         self.pub_cmd.publish(msg)
+        if self.c % 10 == 0:
+            self.c = 0
+            img = img_to_cv2(image_msg)
+            msg.omega = find_angle(img)
+        self.c += 1
 
 if __name__ == '__main__': 
     rospy.init_node('demo',anonymous=False)
     demo_node = DemoNode()
     rospy.spin()
-
-
