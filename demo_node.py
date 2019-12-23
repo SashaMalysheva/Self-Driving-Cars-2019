@@ -66,7 +66,7 @@ def img_to_cv2(image_msg):
             rospy.logerr("Error when converting image: " + str(e))
             return None
         else:
-            rospy.logerr("We don't know how to transform image of type " + str(type(image_msg)) 
+            rospy.logerr("We don't know how to transform image of type " + str(type(image_msg)) + " to cv2 format.")
             return None
 
 class DemoNode(object):
@@ -75,11 +75,16 @@ class DemoNode(object):
         self.sub_image = rospy.Subscriber("/None/corrected_image/compressed", CompressedImage, self.cbImage, queue_size=1)
         self.pub_cmd = rospy.Publisher("/None/car_cmd", Twist2DStamped, queue_size=1)
 
+
+
     def cbImage(self, image_msg):
         msg = Twist2DStamped()
-        msg.v = 0.5
-        img_to_cv2(image_msg)
-        image = msg.omega = find_angle(image)
+        msg.v = 0.1
+        bridge = cv_bridge.CvBridge()
+        np_arr = np.fromstring(image_msg.data, np.uint8)
+#        img = cv2.imdecode(np_arr, cv2.CV_LOAD_IMAGE_COLOR)
+        img = img_to_cv2(image_msg)
+        msg.omega = find_angle(img)
         self.pub_cmd.publish(msg)
 
 if __name__ == '__main__': 
