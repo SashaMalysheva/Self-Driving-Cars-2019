@@ -72,7 +72,7 @@ def img_to_cv2(image_msg):
 class DemoNode(object):
     def __init__(self):
         self.node_name = "LineDetectorNode"
-        self.sub_image = rospy.Subscriber("/None/corrected_image/compressed", CompressedImage, self.cbI$
+        self.sub_image = rospy.Subscriber("/None/corrected_image/compressed", CompressedImage, self.cbImage, queue_size=1)
         self.pub_cmd = rospy.Publisher("/None/car_cmd", Twist2DStamped, queue_size=1)
 
     def cbImage(self, image_msg):
