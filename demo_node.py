@@ -21,17 +21,16 @@ def findIntersection(l1, l2, height):
     return px, py
 
 def find_angle(image):
-    image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
     height, width, _ = image.shape
     gray_image = cv2.cvtColor(image, cv2.COLOR_RGB2GRAY)
     canny_image = cv2.Canny(gray_image, 100, 200)
-    lines = cv2.HoughLinesP(canny_image[int(height/3):int(2*height/3),:],
+    lines = cv2.HoughLinesP(canny_image,
                             rho=6,
                             theta=np.pi/180,
-                            threshold=160,
+                            threshold=100,
                             lines=np.array([]),
-                            minLineLength=100,
-                            maxLineGap=20)
+                            minLineLength=10,
+                            maxLineGap=100)
     #array of (x_1, y_1, x_2, y_2)
     if lines is None:
         return 0
@@ -45,7 +44,8 @@ def find_angle(image):
     l = [[[x1,y1,x2,y2]], [[x3,y3,x4,y4]]]
     x, y = findIntersection(sorted_lines[0], sorted_lines[-1], height)
     x = x - width // 2
-    return math.acos(y / (x*x + y*y))
+    print(x, y, 'k', math.acos(y / (x*x + y*y)))
+    return - math.acos(y / (x*x + y*y))
 
 def img_to_cv2(image_msg):
     """
@@ -84,11 +84,11 @@ class DemoNode(object):
         msg = Twist2DStamped()
         msg.v = 0.1
         msg.omega = 0
-        self.pub_cmd.publish(msg)
-        if self.c % 10 == 0:
+        if self.c % 40 == 0:
             self.c = 0
             img = img_to_cv2(image_msg)
-            msg.omega = find_angle(img)
+            msg.omega = find_angle(img) 
+        self.pub_cmd.publish(msg)
         self.c += 1
 
 if __name__ == '__main__': 
